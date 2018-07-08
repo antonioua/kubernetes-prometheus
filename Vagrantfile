@@ -14,24 +14,26 @@ Vagrant.configure("2") do |config|
     vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
   end
 
-  (1..$nodes_amount).each do |i|
+  (1..$nodes_amount).each do |node|
 
-    config.vm.define "node#{i}" do |node|
-      node.vm.box = "#{image_path}"
-      node.vm.hostname = "node-#{i}"
+    config.vm.define "vmka#{i}" do |vmka|
+      vmka.vm.box = "#{image_path}"
+      vmka.vm.hostname = "vmka-#{i}"
       ip = "10.10.10.#{10+i}"
-      node.vm.network "private_network", ip: ip
-      #node.vm.box_check_update = "false"
+      vmka.vm.network "private_network", ip: ip
+      #vmka.vm.box_check_update = "false"
 
-      node.vm.provider "virtualbox" do |vb|
+      vmka.vm.provider "virtualbox" do |vb|
         # Display the VirtualBox GUI when booting the machine
         vb.gui = false
         vb.memory = "3072"
         vb.cpus = 1
-        vb.name = "node#{i}"
+        vb.name = "vmka#{i}"
       end
 
     end
+
+    vm.provision "shell", path: "https://example.com/provisioner.sh"
 
   end
 
