@@ -1,1 +1,1 @@
-This is my first kuber repo
+# This is repo for automated k8s cluster start with 2 nodes
