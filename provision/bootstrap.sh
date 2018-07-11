@@ -1,5 +1,7 @@
 #!/bin/bash
 
+item=$1
+
 cp /vagrant/provision/stuff/1.crt /etc/pki/ca-trust/source/anchors/
 /usr/bin/update-ca-trust
 
@@ -7,7 +9,10 @@ timedatectl set-timezone Europe/Kiev
 #yum update -y
 
 # install tools
-yum install net-tools telnet -y
+yum install net-tools telnet ntp -y
+
+systemctl start ntpd
+systemctl enable ntpd
 
 # Installing Docker
 yum install -y docker-1.13.1-63.git94f4240.el7.centos;\
@@ -36,15 +41,15 @@ systemctl enable kubelet && systemctl start kubelet
 # Enable iptable kernel parameter"
 cat >> /etc/sysctl.conf <<EOF
 net.ipv4.ip_forward=1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables=1
+net.bridge.bridge-nf-call-iptables=1
 EOF
 sysctl -p
 
 # Some users on RHEL/CentOS 7 have reported issues with traffic being routed incorrectly due to iptables being bypassed. You should ensure net.bridge.bridge-nf-call-iptables is set to 1
 cat <<EOF >  /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables=1
+net.bridge.bridge-nf-call-iptables=1
 EOF
 sysctl --system
 # sysctl net.bridge.bridge-nf-call-iptables=1
@@ -62,7 +67,17 @@ sed -i '/swap/s/^/#/' /etc/fstab
 # Configure Kubernetes to use the same CGroup driver as Docker
 ###sudo sed '/ExecStart=$/a Environment="KUBELET_EXTRA_ARGS=--cgroup-driver=systemd"' -i /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-###kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+ps aux | grep -v grep | grep -q kubelet
+check_kubelet=$(echo $?)
+
+if [ "${item}" == "1" ] && [ "${check_kubelet}" == "1" ]; then
+  kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+  # Master unIsolation
+  # By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
+  kubectl taint nodes --all node-role.kubernetes.io/master-
+else
+  echo -e "This is not a master node, node: ${item}"
+fi
 
 # Set up admin creds for the vagrant user
 ###echo Copying credentials to /home/vagrant...
@@ -76,6 +91,5 @@ sed -i '/swap/s/^/#/' /etc/fstab
 # You can confirm that it is working by checking that the CoreDNS pod is Running in the output of
 ###kubectl get pods --all-namespaces
 
-# Master Isolation
-# By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
+
 ###kubectl taint nodes --all node-role.kubernetes.io/master-

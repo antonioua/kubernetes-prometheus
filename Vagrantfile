@@ -52,7 +52,7 @@ Vagrant.configure("2") do |config|
 
       #config.vm.network "forwarded_port", guest: 80, host: 9090
 
-      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh"
+      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}"]
 
     end
 
