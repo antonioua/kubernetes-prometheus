@@ -1,9 +1,13 @@
 #!/bin/bash
 
 item=$1
+p_enable=$2
 
-cp /vagrant/provision/stuff/1.crt /etc/pki/ca-trust/source/anchors/
-/usr/bin/update-ca-trust
+
+certs_chain_file="/vagrant/provision/certificates/1.crt"
+if [ -f "${certs_chain_file}" ] && [ "${p_enable}" == "true" ]; then
+  cp ${certs_chain_file} /etc/pki/ca-trust/source/anchors/ && /usr/bin/update-ca-trust
+fi
 
 timedatectl set-timezone Europe/Kiev
 #yum update -y
@@ -38,21 +42,15 @@ sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
 yum install -y kubelet kubeadm kubectl
 systemctl enable kubelet && systemctl start kubelet
 
-# Enable iptable kernel parameter"
+# Enable iptables kernel parameter"
+# Some users on RHEL/CentOS 7 have reported issues with traffic being routed incorrectly due to iptables being bypassed. You should ensure net.bridge.bridge-nf-call-iptables is set to 1
 cat >> /etc/sysctl.conf <<EOF
 net.ipv4.ip_forward=1
 net.bridge.bridge-nf-call-ip6tables=1
 net.bridge.bridge-nf-call-iptables=1
 EOF
-sysctl -p
+sysctl -p /etc/sysctl.conf
 
-# Some users on RHEL/CentOS 7 have reported issues with traffic being routed incorrectly due to iptables being bypassed. You should ensure net.bridge.bridge-nf-call-iptables is set to 1
-cat <<EOF >  /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-ip6tables=1
-net.bridge.bridge-nf-call-iptables=1
-EOF
-sysctl --system
-# sysctl net.bridge.bridge-nf-call-iptables=1
 # The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.
 
 # Disable swap
@@ -67,7 +65,8 @@ sed -i '/swap/s/^/#/' /etc/fstab
 # Configure Kubernetes to use the same CGroup driver as Docker
 ###sudo sed '/ExecStart=$/a Environment="KUBELET_EXTRA_ARGS=--cgroup-driver=systemd"' -i /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-ps aux | grep -v grep | grep -q kubelet
+# let's check if our k8s is already running
+docker ps | grep -v grep | grep -q etcd
 check_kubelet=$(echo $?)
 
 if [ "${item}" == "1" ] && [ "${check_kubelet}" == "1" ]; then
@@ -75,21 +74,18 @@ if [ "${item}" == "1" ] && [ "${check_kubelet}" == "1" ]; then
   # Master unIsolation
   # By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
   kubectl taint nodes --all node-role.kubernetes.io/master-
+
+  echo Copying credentials to /home/vagrant...
+  sudo --user=vagrant mkdir -p /home/vagrant/.kube
+  cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+  chown $(id -u vagrant):$(id -g vagrant) /home/vagrant/.kube/config
+  echo "export KUBECONFIG=/home/vagrant/.kube/config" | tee -a /home/vagrant/.bashrc
+
+  # Apply pod network (flannel)
+  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
+  # You can confirm that it is working by checking that the CoreDNS pod is Running in the output of
+  kubectl get pods --all-namespaces
 else
-  echo -e "This is not a master node, node: ${item}"
+  echo -e "This is not a master node or kubelet is already running here"
 fi
 
-# Set up admin creds for the vagrant user
-###echo Copying credentials to /home/vagrant...
-###sudo --user=vagrant mkdir -p /home/vagrant/.kube
-###cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-###chown $(id -u vagrant):$(id -g vagrant) /home/vagrant/.kube/config
-# echo "export KUBECONFIG=/home/vagrant/.kube/config" | tee -a /home/vagrant/.bashrc
-
-# Apply pod network (flannel)
-###kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
-# You can confirm that it is working by checking that the CoreDNS pod is Running in the output of
-###kubectl get pods --all-namespaces
-
-
-###kubectl taint nodes --all node-role.kubernetes.io/master-

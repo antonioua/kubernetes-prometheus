@@ -17,8 +17,8 @@ Vagrant.configure("2") do |config|
 
   # setup vagrant plugin to automatically confugre proxy on vms
   if Vagrant.has_plugin?("vagrant-proxyconf")
-      #p_enable = true
-      p_enable = false
+      p_enable = true
+      #p_enable = false
       p_host = "172.29.50.100"
       p_port = 8080
       proxy = "http://#{p_host}:#{p_port}"
@@ -52,7 +52,7 @@ Vagrant.configure("2") do |config|
 
       #config.vm.network "forwarded_port", guest: 80, host: 9090
 
-      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}"]
+      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}", "#{p_enable}"]
 
     end
 
