@@ -1,81 +1,77 @@
-# This is repo for automated k8s cluster start with 2 nodes
+# K8s cluster: 1 master and 1 worker + monitoring with prometheus
+
 ## Prerequisites:
-install varant and VirtualBox
+- Install varant and VirtualBox
+- $ vagrant plugin install vagrant-proxyconf
 
-$ vagrant plugin install vagrant-proxyconf
+If you machine behind proxy then change var: p_enable = true
 
+## Launch 2 virtualbox vms with vagrant and privision them with shell script
+~~~bash
+$ vagrant up
+$ vagrant status
+~~~
 
+## Setup kuber master node1
+~~~bash
+$ vagrant ssh node1
 
+# Resolve "cannot access /provision: Stale file handle"
+# sudo umount /provision
+$ sudo mount 10.10.10.1:/home/antonku/Documents/pycharm-prjs/automatization/kubernetes-prometheus/provision /provision
 
+# Init kuber master node
+$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
 
+# Copy credentials to /home/vagrant + some tweaks
+$ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
+  sudo cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config; \
+  sudo chown $(id -u vagrant):$(id -g vagrant) /home/vagrant/.kube/config; \
+  echo "export KUBECONFIG=/home/vagrant/.kube/config" | tee -a /home/vagrant/.bashrc; \
+  echo "KUBE_EDITOR=vim" | tee -a /home/vagrant/.bashrc
 
+# By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
+$ kubectl taint nodes --all node-role.kubernetes.io/master-
 
+# Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
-???
+# Check kubernetes cluster
+$ kubectl get pods --all-namespaces
 
- if settings[:proxy_state] == 'present'
-     config.vm.provision 'proxy', type: 'shell', inline: <<-SHELL
-       sudo echo "export http_proxy=http://#{settings[:proxy_host]}:#{settings[:proxy_port]}" >> /etc/environment
-       sudo echo "export https_proxy=http://#{settings[:proxy_host]}:#{settings[:proxy_port]}" >> /etc/environment
-       sudo echo "proxy=http://#{settings[:proxy_host]}:#{settings[:proxy_port]}" >> /etc/yum.conf
-       sudo echo "sslverify=false" >> /etc/yum.conf
-SHELL
-  end
+# Generate join token for minions/workers 
+$ kubeadm token create --print-join-command
+~~~
 
+## Setup kuber minion/worker node2
+~~~bash
+$ sudo kubeadm join 10.10.10.11:6443 --token zuaaz7.s3iykge1y2vz1xa5 --discovery-token-ca-cert-hash sha256:<Your token generated from master node>
+~~~
 
+## Setup Prometheus
+~~~bash
+# Create namespace for monitoring deployment
+$ kubectl create namespace monitoring
+$ kubectl get namesapces
 
-https://vagrantcloud.com/centos/boxes/7/versions/1803.01/providers/virtualbox.box
+# Assign cluster reader permission to "monitoring" namespace so that prometheus can fetch the metrics from kubernetes API’s
+$ kubectl create -f /provision/yaml/prometheus/prometheus-cluster-role.yaml
+$ kubectl get roles --all-namespaces
 
+# Create config map
+$ kubectl create -f /provision/yaml/prometheus/prometheus-configmap.yaml -n monitoring
+$ kubectl get configmaps --all-namespaces
 
-Tested with
-Vagrant version 2.1.2
-Virtualbox version 5.2.12
+# Create deployment
+$ kubectl create -f /provision/yaml/prometheus/prometheus-deployment.yaml --namespace=monitoring
+$ kubectl get deployments --namespace=monitoring
 
+# Run prometheus pod as a service, expose Prometheus on all kubernetes nodes on port 30000.
+$ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring
+$ kubectl get services --all-namespaces
 
-ip addr
+# Load rules
+$ kubectl create -f /provision/yaml/prometheus/prometheus-rules.yaml --namespace=monitoring
 
-
-//view cgroups and slices
-$ sudo systemd-cgls
-
-//check docker cgroup driver
-sudo docker info | grep -i cgroup
-
-
-sudo kubectl version -o yaml
-
-kubeadm config images list
-
-# How to use local kubectl to connect to remote k8s master/api server
-vagrant plugin install vagrant-scp
-vagrant scp <some_local_file_or_dir> [vm_name]:<somewhere_on_the_vm>
-vagrant scp node1:/home/vagrant/.kube/config ~/Downloads/
-kubectl --kubeconfig ~/Downloads/config get nodes
-
-
-curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl
-
-yum install bash-completion -y
-To add kubectl autocompletion to your current shell, run source <(kubectl completion bash).
-
-To add kubectl autocompletion to your profile, so it is automatically loaded in future shells run:
-
-
-echo "source <(kubectl completion bash)" >> ~/.bashrc
-
-
-Tear down
-On Master
-kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
-kubectl delete node <node name>
-
-On node that was removed - reset all kubeadm installed state:
-kubeadm reset
-
-
-
-
-Kuber dashboard:
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+~~~

@@ -5,20 +5,22 @@
 ENV["LC_ALL"] = "en_US.UTF-8"
 ENV["VAGRANT_DEFAULT_PROVIDER"] = "virtualbox"
 
-#image_path = "file:///home/kyrron/Downloads/CentOS-7-x86_64-Vagrant-1805_01.VirtualBox.box"
-image_path = "file:///home/antonku/Downloads/CentOS-7-x86_64-Vagrant-1803_01.VirtualBox.box"
-#image_path = "centos/7"
-#nw_iface = "wlp2s0"
+#image_path = "file:///home/kyrron/Downloads/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box"
+# https://cloud.centos.org/centos/7/vagrant/x86_64/images/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box
+image_path = "centos/7"
+
 
 $instances_amount = 2
 
 Vagrant.configure("2") do |config|
   # v2 configs...
+  # Using nfs ver=3 is dangerous I know, but there is no other otion for now for my laptop
+  config.vm.synced_folder "provision/", "/provision", nfs_version: 3, type: "nfs", nfs_udp: false
 
-  # setup vagrant plugin to automatically confugre proxy on vms
+  # setup vagrant plugin to automatically configure proxy on vms
   if Vagrant.has_plugin?("vagrant-proxyconf")
-      p_enable = true
-      #p_enable = false
+      #p_enable = true
+      p_enable = false
       p_host = "172.29.50.100"
       p_port = 8080
       proxy = "http://#{p_host}:#{p_port}"
@@ -29,9 +31,9 @@ Vagrant.configure("2") do |config|
   end
 
   # Sync time with the local host - I really don't know now how it works ;)
-  config.vm.provider "virtualbox" do |vb|
-    vb.customize [ "guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
-  end
+  ###config.vm.provider "virtualbox" do |vb|
+  ###  vb.customize [ "guestproVagrant.configureperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
+  ###end
 
   (1..$instances_amount).each do |item|
 
