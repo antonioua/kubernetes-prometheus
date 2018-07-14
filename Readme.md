@@ -71,7 +71,14 @@ $ kubectl get deployments --namespace=monitoring
 $ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring
 $ kubectl get services --all-namespaces
 
-# Load rules
-$ kubectl create -f /provision/yaml/prometheus/prometheus-rules.yaml --namespace=monitoring
+# Apply configmap with rules for Prometheus
+$ kubectl apply -f /provision/yaml/prometheus/prometheus-rules-configmap.yaml --namespace=monitoring
 
+# Deploy Alertmanager - got CreateContainerConfigError, need to check logs
+$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-configmap.yaml --namespace=monitoring
+$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-templates.yaml --namespace=monitoring
+$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-deployment.yaml --namespace=monitoring
+$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-service.yaml --namespace=monitoring
+
+# Deploy 
 ~~~
