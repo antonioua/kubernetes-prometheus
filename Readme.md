@@ -34,7 +34,7 @@ $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 # Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
-$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml; \
   kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
 # Check kubernetes cluster
@@ -54,7 +54,11 @@ $ sudo kubeadm join 10.10.10.11:6443 --token zuaaz7.s3iykge1y2vz1xa5 --discovery
 For automatic spin up the prometheus service with all of it's components:
 ~~~bash
 $ vagrant ssh node1
+
+# Generate single conf file
 $ cd /provision/ && chmod u+x ./build_deployment_file.sh && ./build_deployment_file.sh
+
+# Deploy prometheus and other components
 $ kubectl apply -f /provision/manifests-all.yaml
 $ kubectl get pods --all-namespaces
 $ kubectl get services --all-namespaces

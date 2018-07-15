@@ -14,7 +14,7 @@ timedatectl set-timezone Europe/Kiev
 
 # Install tools
 yum install epel-release -y
-yum install net-tools telnet ntp jq vim -y
+yum install net-tools telnet ntp jq vim lsof -y
 
 systemctl start ntpd
 systemctl enable ntpd
