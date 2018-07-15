@@ -17,3 +17,47 @@ data:
         for: 5m
         annotations:
           summary: High frontend request latency
+
+    #cpu-usage-node.rules: |
+    #    ALERT: NodeCPUUtilizationLow
+    #      IF (instance:node_cpu:rate:sum * 100) < 30
+    #      FOR 15m
+    #      LABELS {
+    #        severity="page"
+    #      }
+    #      ANNOTATIONS {
+    #        SUMMARY = "{{$labels.instance}}: High CPU usage detected."
+    #        DESCRIPTION = "CPU utilization has been lower than 30% for last 15 minutes (current value is {{$value}})"
+    #
+    #  cpu-usage.rules: |
+    #    ALERT NodeCPUUsage
+    #      IF (100 - (avg by (instance) (irate(node_cpu{name="node-exporter",mode="idle"}[5m])) * 100)) > 75
+    #      FOR 2m
+    #      LABELS {
+    #        severity="page"
+    #      }
+    #      ANNOTATIONS {
+    #        SUMMARY = "{{$labels.instance}}: High CPU usage detected.",
+    #        DESCRIPTION = "{{$labels.instance}}: CPU usage is above 75% (current value is: {{ $value }})"
+    #      }
+    #  mem-usage.rules: |
+    #    ALERT NodeMemoryUsage
+    #      IF (((node_memory_MemTotal-node_memory_MemFree-node_memory_Cached)/(node_memory_MemTotal)*100)) > 75
+    #      FOR 2m
+    #      LABELS {
+    #        severity="page"
+    #      }
+    #      ANNOTATIONS {
+    #        SUMMARY = "{{$labels.instance}}: High memory usage detected",
+    #        DESCRIPTION = "{{$labels.instance}}: Memory usage is above 75% (current value is: {{ $value }})"
+    #      }
+    #  cpu-usage-node.rules: |
+    #    ALERT: NodeCPUUtilizationLow
+    #      IF (instance:node_cpu:rate:sum * 100) < 30
+    #      FOR 15m
+    #      LABELS {
+    #        severity="page"
+    #      }
+    #      ANNOTATIONS {
+    #        SUMMARY = "{{$labels.instance}}: High CPU usage detected."
+    #        DESCRIPTION = "CPU utilization has been lower than 30% for last 15 minutes (current value is {{$value}})"
