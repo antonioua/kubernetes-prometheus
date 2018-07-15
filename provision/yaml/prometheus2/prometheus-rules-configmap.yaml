@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  cpu-usage.rules: |
+    ALERT NodeCPUUsage
+      IF (100 - (avg by (instance) (irate(node_cpu{name="node-exporter",mode="idle"}[5m])) * 100)) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: High CPU usage detected. DOH!",
+        DESCRIPTION = "{{$labels.instance}}: CPU usage is above 75% (current value is: {{ $value }})"
+      }
+  mem-usage.rules: |
+    ALERT NodeMemoryUsage
+      IF (((node_memory_MemTotal-node_memory_MemFree-node_memory_Cached)/(node_memory_MemTotal)*100)) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: High memory usage detected",
+        DESCRIPTION = "{{$labels.instance}}: Memory usage is above 75% (current value is: {{ $value }})"
+      }g

@@ -2,7 +2,7 @@
 
 ## Prerequisites:
 - Install varant and VirtualBox
-- $ vagrant plugin install vagrant-proxyconf
+- vagrant plugin install vagrant-proxyconf
 
 If you machine behind proxy then change var: p_enable = true
 
@@ -56,8 +56,10 @@ $ kubectl create namespace monitoring
 $ kubectl get namesapces
 
 # Assign cluster reader permission to "monitoring" namespace so that prometheus can fetch the metrics from kubernetes API’s
+# Create service account and Roles
 $ kubectl create -f /provision/yaml/prometheus/prometheus-cluster-role.yaml
 $ kubectl get roles --all-namespaces
+$ kubectl get serviceaccounts --all-namespaces
 
 # Create config map
 $ kubectl create -f /provision/yaml/prometheus/prometheus-configmap.yaml -n monitoring
@@ -66,6 +68,9 @@ $ kubectl get configmaps --all-namespaces
 # Create deployment
 $ kubectl create -f /provision/yaml/prometheus/prometheus-deployment.yaml --namespace=monitoring
 $ kubectl get deployments --namespace=monitoring
+# Check logs if sth  went wrong
+$ kubectl describe pod prometheus --namespace=monitoring
+
 
 # Run prometheus pod as a service, expose Prometheus on all kubernetes nodes on port 30000.
 $ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring

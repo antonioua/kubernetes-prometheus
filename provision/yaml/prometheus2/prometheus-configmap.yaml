@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: prometheus-core
+  namespace: monitoring
+data:
+  prometheus.yaml: |
+    global:
+      scrape_interval: 10s
+      scrape_timeout: 10s
+      evaluation_interval: 10s
+
+    rule_files:
+      - "/etc/prometheus-rules/*.rules"
+
+    # all the examples are taken from https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml
+    scrape_configs:
+      - job_name: 'kubernetes-nodes'
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics
+
+      - job_name: 'kubernetes-service-endpoints'
+        kubernetes_sd_configs:
+          - role: endpoints
+
+          relabel_configs:
+          # Example relabel to scrape only endpoints that have
+          # "example.io/should_be_scraped = true" annotation.
+          #  - source_labels: [__meta_kubernetes_service_annotation_example_io_should_be_scraped]
+          #    action: keep
+          #    regex: true
+          #
+          # Example relabel to customize metric path based on endpoints
+          # "example.io/metric_path = <metric path>" annotation.
+          #  - source_labels: [__meta_kubernetes_service_annotation_example_io_metric_path]
+          #    action: replace
+          #    target_label: __metrics_path__
+          #    regex: (.+)
+          #
+          # Example relabel to scrape only single, desired port for the service based
+          # on endpoints "example.io/scrape_port = <port>" annotation.
+          #  - source_labels: [__address__, __meta_kubernetes_service_annotation_example_io_scrape_port]
+          #    action: replace
+          #    regex: ([^:]+)(?::\d+)?;(\d+)
+          #    replacement: $1:$2
+          #    target_label: __address__
+          #
+          # Example relabel to configure scrape scheme for all service scrape targets
+          # based on endpoints "example.io/scrape_scheme = <scheme>" annotation.
+          #  - source_labels: [__meta_kubernetes_service_annotation_example_io_scrape_scheme]
+          #    action: replace
+          #    target_label: __scheme__
+          #    regex: (https?)
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            action: replace
+            target_label: kubernetes_name
+
+      - job_name: 'kubernetes-services'
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+
+        kubernetes_sd_configs:
+        - role: service
+
+        relabel_configs:
+        # Example relabel to probe only some services that have "example.io/should_be_probed = true" annotation
+        #  - source_labels: [__meta_kubernetes_service_annotation_example_io_should_be_probed]
+        #    action: keep
+        #    regex: true
+        - source_labels: [__address__]
+          target_label: __param_target
+        - target_label: __address__
+          replacement: blackbox-exporter.example.com:9115
+        - source_labels: [__param_target]
+          target_label: instance
+        - action: labelmap
+          regex: __meta_kubernetes_service_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_service_name]
+          target_label: kubernetes_name
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+        - role: pod
+
+        relabel_configs:
+        # Example relabel to scrape only pods that have
+        # "example.io/should_be_scraped = true" annotation.
+        #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_should_be_scraped]
+        #    action: keep
+        #    regex: true
+        #
+        # Example relabel to customize metric path based on pod
+        # "example.io/metric_path = <metric path>" annotation.
+        #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_metric_path]
+        #    action: replace
+        #    target_label: __metrics_path__
+        #    regex: (.+)
+        #
+        # Example relabel to scrape only single, desired port for the pod
+        # based on pod "example.io/scrape_port = <port>" annotation.
+        # Note that __address__ is modified here, so if pod containers' ports
+        # are declared, they all will be ignored.
+        #  - source_labels: [__address__, __meta_kubernetes_pod_annotation_example_io_scrape_port]
+        #    action: replace
+        #    regex: ([^:]+)(?::\d+)?;(\d+)
+        #    replacement: $1:$2
+        #    target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
