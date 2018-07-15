@@ -13,7 +13,7 @@ data:
         severity="page"
       }
       ANNOTATIONS {
-        SUMMARY = "{{$labels.instance}}: High CPU usage detected. DOH!!!!",
+        SUMMARY = "{{$labels.instance}}: High CPU usage detected.",
         DESCRIPTION = "{{$labels.instance}}: CPU usage is above 75% (current value is: {{ $value }})"
       }
   mem-usage.rules: |

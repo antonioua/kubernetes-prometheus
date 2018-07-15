@@ -114,3 +114,7 @@ Used resources:
 - https://github.com/prometheus/
 - https://github.com/prometheus/prometheus/tree/master/documentation/examples
 - https://github.com/giantswarm/kubernetes-prometheus/
+
+## Some Questions:
+1. How to debug a container/pod that is in CrashLoop/Error state ?
+2. Are we able to restart pod/service/container to enable the configuration from configMap?
