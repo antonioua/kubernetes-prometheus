@@ -15,7 +15,8 @@ $instances_amount = 2
 Vagrant.configure("2") do |config|
   # v2 configs...
   # Using nfs ver=3 is dangerous I know, but there is no other otion for now for my laptop
-  config.vm.synced_folder "provision/", "/provision", nfs_version: 3, type: "nfs", nfs_udp: false
+  config.vm.synced_folder "provision/", "/provision", type: "nfs", nfs_udp: false
+  # nfs_version: 3,
 
   # setup vagrant plugin to automatically configure proxy on vms
   if Vagrant.has_plugin?("vagrant-proxyconf")

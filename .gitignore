@@ -1,3 +1,5 @@
 .idea/
 .vagrant/
 provision/certificates/1.crt
+tmp/
+provision/manifests-all.yaml

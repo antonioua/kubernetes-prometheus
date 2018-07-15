@@ -20,7 +20,7 @@ spec:
         ports:
         - name: prom-node-exp
           #^ must be an IANA_SVC_NAME (at most 15 characters, ..)
-          containerPort: F
+          containerPort: 9100
           hostPort: 9100
       hostNetwork: true
       hostPID: true

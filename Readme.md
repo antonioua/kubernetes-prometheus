@@ -6,7 +6,7 @@
 
 If you machine behind proxy then change var: p_enable = true
 
-## Launch 2 virtualbox vms with vagrant and privision them with shell script
+## Launch 2 virtualbox vms with vagrant and provision them with shell script
 ~~~bash
 $ vagrant up
 $ vagrant status
@@ -35,7 +35,7 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 # Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
 $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces
@@ -46,18 +46,29 @@ $ kubeadm token create --print-join-command
 
 ## Setup kuber minion/worker node2
 ~~~bash
+$ vagrant ssh node2
 $ sudo kubeadm join 10.10.10.11:6443 --token zuaaz7.s3iykge1y2vz1xa5 --discovery-token-ca-cert-hash sha256:<Your token generated from master node>
 ~~~
 
 ## Setup Prometheus
+For automatic spin up the prometheus service with all of it's components:
+~~~bash
+$ vagrant ssh node1
+$ cd /provision/ && chmod u+x ./build_deployment_file.sh && ./build_deployment_file.sh
+$ kubectl apply -f /provision/manifests-all.yaml
+$ kubectl get pods --all-namespaces
+$ kubectl get services --all-namespaces
+~~~
+
+For manual setup:
 ~~~bash
 # Create namespace for monitoring deployment
 $ kubectl create namespace monitoring
 $ kubectl get namesapces
 
+# Create Role-based access control config for Prometheus
 # Assign cluster reader permission to "monitoring" namespace so that prometheus can fetch the metrics from kubernetes API’s
-# Create service account and Roles
-$ kubectl create -f /provision/yaml/prometheus/prometheus-cluster-role.yaml
+$ kubectl create -f /provision/yaml/prometheus/prometheus-rbac.yaml
 $ kubectl get roles --all-namespaces
 $ kubectl get serviceaccounts --all-namespaces
 
@@ -65,19 +76,18 @@ $ kubectl get serviceaccounts --all-namespaces
 $ kubectl create -f /provision/yaml/prometheus/prometheus-configmap.yaml -n monitoring
 $ kubectl get configmaps --all-namespaces
 
+# Apply configmap with rules for Prometheus
+$ kubectl apply -f /provision/yaml/prometheus/prometheus-rules-configmap.yaml --namespace=monitoring
+
 # Create deployment
 $ kubectl create -f /provision/yaml/prometheus/prometheus-deployment.yaml --namespace=monitoring
-$ kubectl get deployments --namespace=monitoring
+$ kubectl get pods --namespace=monitoring
 # Check logs if sth  went wrong
-$ kubectl describe pod prometheus --namespace=monitoring
-
+$ kubectl describe pod prometheus-core-86b8455f76-px847 --namespace=monitoring
 
 # Run prometheus pod as a service, expose Prometheus on all kubernetes nodes on port 30000.
 $ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring
 $ kubectl get services --all-namespaces
-
-# Apply configmap with rules for Prometheus
-$ kubectl apply -f /provision/yaml/prometheus/prometheus-rules-configmap.yaml --namespace=monitoring
 
 # Deploy Alertmanager - got CreateContainerConfigError, need to check logs
 $ kubectl apply -f /provision/yaml/alertmanager/alertmanager-configmap.yaml --namespace=monitoring
@@ -85,5 +95,18 @@ $ kubectl apply -f /provision/yaml/alertmanager/alertmanager-templates.yaml --na
 $ kubectl apply -f /provision/yaml/alertmanager/alertmanager-deployment.yaml --namespace=monitoring
 $ kubectl apply -f /provision/yaml/alertmanager/alertmanager-service.yaml --namespace=monitoring
 
-# Deploy 
+# Deploy manualy other components
+# ToDO
 ~~~
+
+To delete everything and play again:
+~~~bash
+$ kubectl delete -f /provision/manifests-all.yaml
+$ kubectl delete namespace monitoring --grace-period=0 --force
+~~~
+
+## Conclusion
+Used resources:
+- https://github.com/prometheus/
+- https://github.com/prometheus/prometheus/tree/master/documentation/examples
+- https://github.com/giantswarm/kubernetes-prometheus/
