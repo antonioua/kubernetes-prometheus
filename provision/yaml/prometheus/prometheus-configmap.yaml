@@ -11,13 +11,33 @@ data:
       scrape_timeout: 10s
       evaluation_interval: 10s
     rule_files:
-      - "/etc/prometheus-rules/*.rules"
+      - "/etc/prometheus-rules/*.rules.yaml"
+
+    # This snippet instructs Prometheus to search for Kubernetes pods, in the default namespace, with the label name: alertmanager and with a non-empty port.
+    alerting:
+      alertmanagers:
+      - kubernetes_sd_configs:
+          - role: pod
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_name]
+          regex: alertmanager
+          action: keep
+        - source_labels: [__meta_kubernetes_namespace]
+          regex: monitoring
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_container_port_number]
+          regex:
+          action: drop
+
     scrape_configs:
 
       # https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml#L37
       - job_name: 'kubernetes-nodes'
         tls_config:
-          insecure_skip_verify: true
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: node
