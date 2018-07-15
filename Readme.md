@@ -119,7 +119,7 @@ $ kubectl delete namespace monitoring --grace-period=0 --force
 ~~~
 
 ## Conclusion
-Used resources:
+## Some references:
 - https://github.com/prometheus/
 - https://github.com/prometheus/prometheus/tree/master/documentation/examples
 - https://github.com/giantswarm/kubernetes-prometheus/
