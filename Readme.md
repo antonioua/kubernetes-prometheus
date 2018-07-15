@@ -1,10 +1,17 @@
 # K8s cluster: 1 master and 1 worker + monitoring with prometheus
 
 ## Prerequisites:
-- Install varant and VirtualBox
-- vagrant plugin install vagrant-proxyconf
+- Install Vagrant and VirtualBox
+- Install plugin vagrant-proxyconf
 
-If you machine behind proxy then change var: p_enable = true
+~~~bash
+vagrant plugin install vagrant-proxyconf
+~~~
+
+If you machine behind proxy then change var:
+~~~bash
+p_enable = true
+~~~
 
 ## Launch 2 virtualbox vms with vagrant and provision them with shell script
 ~~~bash
@@ -103,6 +110,8 @@ $ kubectl apply -f /provision/yaml/alertmanager/alertmanager-service.yaml --name
 # ToDO
 ~~~
 
+You can access prometheus weUI via url: http://10.10.10.12:30000/rules
+
 To delete everything and play again:
 ~~~bash
 $ kubectl delete -f /provision/manifests-all.yaml
@@ -118,3 +127,5 @@ Used resources:
 ## Some Questions:
 1. How to debug a container/pod that is in CrashLoop/Error state ?
 2. Are we able to restart pod/service/container to enable the configuration from configMap?
+3. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
+I have k8s v1.11 and prometheus v1.7.0.
