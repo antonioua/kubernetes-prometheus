@@ -3,9 +3,11 @@
 ## Prerequisites:
 - Install Vagrant and VirtualBox
 - Install plugin vagrant-proxyconf
+- Start nfs server
 
 ~~~bash
-vagrant plugin install vagrant-proxyconf
+$ vagrant plugin install vagrant-proxyconf
+$ sudo systemctl start nfs
 ~~~
 
 If you machine behind proxy then change var:
@@ -27,6 +29,7 @@ $ vagrant ssh node1
 # sudo umount /provision
 $ sudo mount 10.10.10.1:/home/antonku/Documents/pycharm-prjs/automatization/kubernetes-prometheus/provision /provision
 
+
 # Init kuber master node
 $ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
 
@@ -47,7 +50,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Docum
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces
 
-# Generate join token for minions/workers 
+# Get join token for minions/workers 
 $ kubeadm token create --print-join-command
 ~~~
 

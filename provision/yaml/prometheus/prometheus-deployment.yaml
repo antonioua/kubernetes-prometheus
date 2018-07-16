@@ -19,8 +19,6 @@ spec:
       containers:
       - name: prometheus
         image: prom/prometheus:v2.3.2
-        args:
-          - '--config.file=/etc/prometheus/prometheus.yaml'
         ports:
         - name: webui
           containerPort: 9090
@@ -31,15 +29,15 @@ spec:
           limits:
             cpu: 500m
             memory: 500M
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/prometheus
-        - name: rules-volume
-          mountPath: /etc/prometheus-rules
-      volumes:
-      - name: config-volume
-        configMap:
-          name: prometheus-core
-      - name: rules-volume
-        configMap:
-          name: prometheus-rules
+#        volumeMounts:
+#        - name: config-volume
+#          mountPath: /etc/prometheus
+#        - name: rules-volume
+#          mountPath: /etc/prometheus-rules
+#      volumes:
+#      - name: config-volume
+#        configMap:
+#          name: prometheus-core
+#      - name: rules-volume
+#        configMap:
+#          name: prometheus-rules
