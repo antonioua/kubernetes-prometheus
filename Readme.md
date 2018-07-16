@@ -122,13 +122,21 @@ $ kubectl delete namespace monitoring --grace-period=0 --force
 ~~~
 
 ## Conclusion
-Used resources:
+Useful resources:
+- https://prometheus.io/docs/prometheus/latest/migration/
 - https://github.com/prometheus/
 - https://github.com/prometheus/prometheus/tree/master/documentation/examples
 - https://github.com/giantswarm/kubernetes-prometheus/
 
 ## Some Questions:
-1. How to debug a container/pod that is in CrashLoop/Error state ?
-2. Are we able to restart pod/service/container to enable the configuration from configMap?
-3. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
+1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
+2. How to debug a container/pod that is in CrashLoop/Error state ?
+3. Are we able to restart pod/service/container to enable the configuration from configMap?
+4. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
 I have k8s v1.11 and prometheus v1.7.0.
+
+## Sesurity cheks
+1. https://github.com/kayrus/kubelet-exploit
+
+## Troubleshooting and debugging
+1. Check DNS, https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/

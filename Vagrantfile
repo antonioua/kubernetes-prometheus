@@ -56,6 +56,12 @@ Vagrant.configure("2") do |config|
 
       node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}", "#{p_enable}"]
 
+      #if #{item} == 1
+      #  node.vm.provision "shell", privileged: true, inline: <<-SHELL
+      #    kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+      #  SHELL
+      #end
+
     end
 
   end

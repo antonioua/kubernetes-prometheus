@@ -144,7 +144,7 @@ data:
       - action: labelmap
         regex: __meta_kubernetes_node_label_(.+)
       - target_label: __address__
-        replacement: kubernetes.default.svc:443
+        replacement: kube-apiserver:6443
       - source_labels: [__meta_kubernetes_node_name]
         regex: (.+)
         target_label: __metrics_path__
@@ -164,3 +164,4 @@ data:
     #
     # This job is not necessary and should be removed in Kubernetes 1.6 and
     # earlier versions, or it will cause the metrics to be scraped twice.
+
