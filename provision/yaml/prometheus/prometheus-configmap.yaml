@@ -10,8 +10,8 @@ data:
       scrape_interval: 10s
       scrape_timeout: 10s
       evaluation_interval: 10s
-    #rule_files:
-    #  - "/etc/prometheus-rules/*.rules.yaml"
+    rule_files:
+      - "/etc/prometheus-rules/*.rules.yaml"
 
     # This snippet instructs Prometheus to search for Kubernetes pods, in the default namespace, with the label name: alertmanager and with a non-empty port.
     alerting:
@@ -121,47 +121,58 @@ data:
     # cluster, or can't connect to nodes for some other reason (e.g. because of
     # firewalling).
 
-    - job_name: 'kubernetes-nodes'
 
-      # Default to scraping over https. If required, just disable this or change to
-      # `http`.
-      scheme: https
+    ###- job_name: 'kubernetes-nodes'
+    ###
+    ###  # Default to scraping over https. If required, just disable this or change to
+    ###  # `http`.
+    ###  scheme: https
+    ###
+    ###  # This TLS & bearer token file config is used to connect to the actual scrape
+    ###  # endpoints for cluster components. This is separate to discovery auth
+    ###  # configuration because discovery & scraping are two separate concerns in
+    ###  # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+    ###  # the cluster. Otherwise, more config options have to be provided within the
+    ###  # <kubernetes_sd_config>.
+    ###  tls_config:
+    ###    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    ###  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    ###
+    ###  kubernetes_sd_configs:
+    ###  - role: node
+    ###
+    ###  relabel_configs:
+    ###  - action: labelmap
+    ###    regex: __meta_kubernetes_node_label_(.+)
+    ###  - target_label: __address__
+    ###    replacement: kube-apiserver:6443
+    ###  - source_labels: [__meta_kubernetes_node_name]
+    ###    regex: (.+)
+    ###    target_label: __metrics_path__
+    ###    replacement: /api/v1/nodes/${1}/proxy/metrics
 
-      # This TLS & bearer token file config is used to connect to the actual scrape
-      # endpoints for cluster components. This is separate to discovery auth
-      # configuration because discovery & scraping are two separate concerns in
-      # Prometheus. The discovery auth config is automatic if Prometheus runs inside
-      # the cluster. Otherwise, more config options have to be provided within the
-      # <kubernetes_sd_config>.
-      tls_config:
-        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    - job_name: 'cadvisor'
 
-      kubernetes_sd_configs:
-      - role: node
+      # Override the global default and scrape targets from this job every 5 seconds.
+      scrape_interval: 5s
 
-      relabel_configs:
-      - action: labelmap
-        regex: __meta_kubernetes_node_label_(.+)
-      - target_label: __address__
-        replacement: kube-apiserver:6443
-      - source_labels: [__meta_kubernetes_node_name]
-        regex: (.+)
-        target_label: __metrics_path__
-        replacement: /api/v1/nodes/${1}/proxy/metrics
+      dns_sd_configs:
+      - names:
+        - 'cadvisor'
+        type: 'A'
+        port: 8080
 
-    # Scrape config for Kubelet cAdvisor.
-    #
-    # This is required for Kubernetes 1.7.3 and later, where cAdvisor metrics
-    # (those whose names begin with 'container_') have been removed from the
-    # Kubelet metrics endpoint.  This job scrapes the cAdvisor endpoint to
-    # retrieve those metrics.
-    #
-    # In Kubernetes 1.7.0-1.7.2, these metrics are only exposed on the cAdvisor
-    # HTTP endpoint; use "replacement: /api/v1/nodes/${1}:4194/proxy/metrics"
-    # in that case (and ensure cAdvisor's HTTP server hasn't been disabled with
-    # the --cadvisor-port=0 Kubelet flag).
-    #
-    # This job is not necessary and should be removed in Kubernetes 1.6 and
-    # earlier versions, or it will cause the metrics to be scraped twice.
+      # static_configs:
+      # - targets: ['cadvisor:8080']
 
+
+    - job_name: 'node-exporter'
+
+      # Override the global default and scrape targets from this job every 5 seconds.
+      scrape_interval: 5s
+
+      dns_sd_configs:
+      - names:
+        - 'node-exporter'
+        type: 'A'
+        port: 9100

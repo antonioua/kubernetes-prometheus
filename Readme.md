@@ -31,7 +31,7 @@ $ sudo mount 10.10.10.1:/home/antonku/Documents/pycharm-prjs/automatization/kube
 
 
 # Init kuber master node
-$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+$ sudo kubeadm init --feature-gates=CoreDNS=true --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
 
 # Copy credentials to /home/vagrant + some tweaks
 $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
@@ -123,17 +123,21 @@ $ kubectl delete namespace monitoring --grace-period=0 --force
 
 ## Conclusion
 Useful resources:
+- https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG.md
 - https://prometheus.io/docs/prometheus/latest/migration/
+- https://prometheus.io/docs/prometheus/latest/migration/#recording-rules-and-alerts
+- https://github.com/camilb/prometheus-kubernetes
 - https://github.com/prometheus/
 - https://github.com/prometheus/prometheus/tree/master/documentation/examples
 - https://github.com/giantswarm/kubernetes-prometheus/
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
-2. How to debug a container/pod that is in CrashLoop/Error state ?
-3. Are we able to restart pod/service/container to enable the configuration from configMap?
-4. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
-I have k8s v1.11 and prometheus v1.7.0.
+2.Resolved. I have a failed checks of kube-dns in kubernetes-service-endpoints section in prometheus, what causes this?
+3. How to debug a container/pod that is in CrashLoop/Error state ?
+4. Are we able to restart pod/service/container to enable the configuration from configMap, for example configmap with rules for prometheus?
+5. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
+I have k8s v1.11 and prometheus v2.3.2
 
 ## Sesurity cheks
 1. https://github.com/kayrus/kubelet-exploit
