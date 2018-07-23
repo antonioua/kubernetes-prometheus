@@ -18,17 +18,17 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder "provision/", "/provision", nfs_version: 3, type: "nfs", nfs_udp: false, mount_options: ['actimeo=2']
 
   # setup vagrant plugin to automatically configure proxy on vms
-  if Vagrant.has_plugin?("vagrant-proxyconf")
-      p_enable = true
-      #p_enable = false
-      p_host = "172.29.50.100"
-      p_port = 8080
-      proxy = "http://#{p_host}:#{p_port}"
-      no_proxy = "127.0.0.1, localhost, 10.10.10.11, 10.10.10.12, 10.244.0.0, 10.244.0.1, 10.244.0.2, 10.244.0.3, 10.244.0.0/16, 10.96.0.0, 10.96.0.0/12, 10.0.2.15, 10.244.0.50, 10.244.0.51, 10.244.1.195, 10.244.1.197, 10.244.1.199"
-      config.proxy.http     = p_enable ? proxy : ""
-      config.proxy.https    = config.proxy.http
-      config.proxy.no_proxy = p_enable ? no_proxy : ""
-  end
+  ###if Vagrant.has_plugin?("vagrant-proxyconf")
+  ###    #p_enable = true
+  ###    p_enable = false
+  ###    p_host = "172.29.50.100"
+  ###    p_port = 8080
+  ###    proxy = "http://#{p_host}:#{p_port}"
+  ###    no_proxy = "127.0.0.1, localhost, 10.10.10.11, 10.10.10.12, 10.244.0.0, 10.244.0.1, 10.244.0.2, 10.244.0.3, 10.244.0.0/16, 10.96.0.0, 10.96.0.0/12, 10.0.2.15, 10.244.0.50, 10.244.0.51, 10.244.1.195, 10.244.1.197, 10.244.1.199"
+  ###    config.proxy.http     = p_enable ? proxy : ""
+  ###    config.proxy.https    = config.proxy.http
+  ###    config.proxy.no_proxy = p_enable ? no_proxy : ""
+  ###end
 
   # Sync time with the local host - I really don't know now how it works ;)
   ###config.vm.provider "virtualbox" do |vb|
@@ -54,7 +54,7 @@ Vagrant.configure("2") do |config|
 
       #config.vm.network "forwarded_port", guest: 80, host: 9090
 
-      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}", "#{p_enable}"]
+      node.vm.provision "shell", privileged: true, path: "./provision/bootstrap.sh", :args => ["#{item}"]
 
       #if #{item} == 1
       #  node.vm.provision "shell", privileged: true, inline: <<-SHELL

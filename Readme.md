@@ -26,12 +26,15 @@ $ vagrant status
 $ vagrant ssh node1
 
 # Resolve "cannot access /provision: Stale file handle"
-# sudo umount /provision
-$ sudo mount 10.10.10.1:/home/antonku/Documents/pycharm-prjs/automatization/kubernetes-prometheus/provision /provision
+$ cd /; \
+  sudo umount /provision; \
+  sudo mount 10.10.10.1:/home/antonku/Documents/pycharm-prjs/automatization/kubernetes-prometheus/provision /provision
 
 
 # Init kuber master node
-$ sudo kubeadm init --feature-gates=CoreDNS=true --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11
+###$ sudo kubeadm init --feature-gates=CoreDNS=true --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
+###$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.9
 
 # Copy credentials to /home/vagrant + some tweaks
 $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
@@ -39,13 +42,22 @@ $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
   sudo chown $(id -u vagrant):$(id -g vagrant) /home/vagrant/.kube/config; \
   echo "export KUBECONFIG=/home/vagrant/.kube/config" | tee -a /home/vagrant/.bashrc; \
   echo "KUBE_EDITOR=vim" | tee -a /home/vagrant/.bashrc
+  
+$ kubectl cluster-info
+$ kubectl version
 
+# If you are going to run single node cluster then do not run below.
 # By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 # Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
-$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml; \
-  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+###$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml; \
+### kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
+
+# If server does not allow access to the requested resource - The kubernetes cluster has RBAC enabled. Run:
+$ https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces
@@ -103,17 +115,11 @@ $ kubectl describe pod prometheus-core-86b8455f76-px847 --namespace=monitoring
 $ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring
 $ kubectl get services --all-namespaces
 
-# Deploy Alertmanager - got CreateContainerConfigError, need to check logs
-$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-configmap.yaml --namespace=monitoring
-$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-templates.yaml --namespace=monitoring
-$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-deployment.yaml --namespace=monitoring
-$ kubectl apply -f /provision/yaml/alertmanager/alertmanager-service.yaml --namespace=monitoring
-
 # Deploy manualy other components
 # ToDO
 ~~~
 
-You can access prometheus weUI via url: http://10.10.10.12:30000/rules
+You can access prometheus webUI via url: http://10.10.10.12:30000/
 
 To delete everything and play again:
 ~~~bash
@@ -130,6 +136,8 @@ Useful resources:
 - https://github.com/prometheus/
 - https://github.com/prometheus/prometheus/tree/master/documentation/examples
 - https://github.com/giantswarm/kubernetes-prometheus/
+- https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole
+- https://github.com/coreos
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
@@ -144,3 +152,6 @@ I have k8s v1.11 and prometheus v2.3.2
 
 ## Troubleshooting and debugging
 1. Check DNS, https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
+
+## To try
+- As I know the use of kubeadm is discouraged in production, so need to try https://github.com/kubernetes/kops/

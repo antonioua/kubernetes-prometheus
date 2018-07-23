@@ -1,13 +1,14 @@
 #!/bin/bash
 
 item=$1
-p_enable=$2
+###p_enable=$2
 
 
-certs_chain_file="/vagrant/provision/certificates/1.crt"
-if [ -f "${certs_chain_file}" ] && [ "${p_enable}" == "true" ]; then
-  cp ${certs_chain_file} /etc/pki/ca-trust/source/anchors/ && /usr/bin/update-ca-trust
-fi
+###certs_chain_file="/vagrant/provision/certificates/1.crt"
+###echo -e ${p_enable}
+###if [ -f "${certs_chain_file}" ] && [ "${p_enable}" == "true" ]; then
+###  cp ${certs_chain_file} /etc/pki/ca-trust/source/anchors/ && /usr/bin/update-ca-trust
+###fi
 
 timedatectl set-timezone Europe/Kiev
 #yum update -y
@@ -15,6 +16,14 @@ timedatectl set-timezone Europe/Kiev
 # Install tools
 yum install epel-release -y
 yum install net-tools telnet ntp jq vim lsof bind-utils -y
+
+# Disabling SELinux is required to allow containers to access the host filesystem, which is required by pod networks for example. You have to do this until SELinux support is improved in the kubelet.
+setenforce 0
+sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
+# kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
+# kubeadm: the command to bootstrap the cluster.
+# kubectl: the command line util to talk to your cluster.
+systemctl stop firewalld
 
 systemctl start ntpd
 systemctl enable ntpd
@@ -33,6 +42,7 @@ yum-config-manager \
 yum install -y --setopt=obsoletes=0 \
   docker-ce-17.03.2.ce-1.el7.centos \
   docker-ce-selinux-17.03.2.ce-1.el7.centos
+###yum install docker-ce -y
 systemctl enable docker && systemctl start docker
 
 # Avoid kuber warning [WARNING RequiredIPVSKernelModulesAvailable]: the IPVS proxier will not be used
@@ -55,21 +65,9 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
-# Disabling SELinux is required to allow containers to access the host filesystem, which is required by pod networks for example. You have to do this until SELinux support is improved in the kubelet.
-setenforce 0
-sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
-# kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
-# kubeadm: the command to bootstrap the cluster.
-# kubectl: the command line util to talk to your cluster.
-systemctl stop firewalld
-
 # Install kuber node components: kubeadm, kubelet and kubectl
 yum install -y kubelet kubeadm kubectl
-
-#yum install -y --setopt=obsoletes=0 \
-#  kubelet-1.8.15-0 \
-#  kubeadm-1.8.15-0 \
-#  kubectl-1.8.15-0
+###yum install -y kubelet-1.9.9-0 kubeadm-1.9.9-0 kubectl-1.9.9-0
 
 systemctl enable kubelet && systemctl start kubelet
 

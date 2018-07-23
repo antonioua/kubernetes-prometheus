@@ -30,6 +30,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - nodes
   - services
   - endpoints
   - pods
@@ -43,6 +44,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - nodes
   - services
   - endpoints
   - pods
