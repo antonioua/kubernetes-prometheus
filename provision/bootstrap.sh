@@ -1,14 +1,14 @@
 #!/bin/bash
 
 item=$1
-###p_enable=$2
+p_enable=$2
 
 
-###certs_chain_file="/vagrant/provision/certificates/1.crt"
-###echo -e ${p_enable}
-###if [ -f "${certs_chain_file}" ] && [ "${p_enable}" == "true" ]; then
-###  cp ${certs_chain_file} /etc/pki/ca-trust/source/anchors/ && /usr/bin/update-ca-trust
-###fi
+##certs_chain_file="/vagrant/provision/certificates/1.crt"
+##echo -e "Alloha Alloha!!!!!!!!\n\n\n\\n\n value: ${p_enable} \n\n\n\n\n\"
+##if [ -f "${certs_chain_file}" ] && [ "${p_enable}" == "true" ]; then
+##  cp ${certs_chain_file} /etc/pki/ca-trust/source/anchors/ && /usr/bin/update-ca-trust
+##fi
 
 timedatectl set-timezone Europe/Kiev
 #yum update -y
