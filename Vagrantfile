@@ -7,8 +7,9 @@ ENV["VAGRANT_DEFAULT_PROVIDER"] = "virtualbox"
 
 #image_path = "file:///home/kyrron/Downloads/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box"
 # https://cloud.centos.org/centos/7/vagrant/x86_64/images/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box
-image_path = "centos/7"
-
+image_box_base = "centos/7"
+image_box_version = "1705.02"
+#v1710.01
 
 $instances_amount = 2
 
@@ -38,7 +39,8 @@ Vagrant.configure("2") do |config|
   (1..$instances_amount).each do |item|
 
     config.vm.define "node#{item}" do |node|
-      node.vm.box = "#{image_path}"
+      node.vm.box = "#{image_box_base}"
+      node.vm.box_version = "#{image_box_version}"
       node.vm.hostname = "node-#{item}"
       ip = "10.10.10.#{10+item}"
       node.vm.network "private_network", ip: ip

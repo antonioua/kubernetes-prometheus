@@ -20,6 +20,12 @@ yum install net-tools telnet ntp jq vim lsof bind-utils -y
 # Disabling SELinux is required to allow containers to access the host filesystem, which is required by pod networks for example. You have to do this until SELinux support is improved in the kubelet.
 setenforce 0
 sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
+
+
+#/etc/sysconfig/selinux ???
+
+
+
 # kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
 # kubeadm: the command to bootstrap the cluster.
 # kubectl: the command line util to talk to your cluster.
@@ -66,8 +72,8 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 EOF
 
 # Install kuber node components: kubeadm, kubelet and kubectl
-yum install -y kubelet kubeadm kubectl
-###yum install -y kubelet-1.9.9-0 kubeadm-1.9.9-0 kubectl-1.9.9-0
+###yum install -y kubelet kubeadm kubectl
+yum install -y kubelet-1.9.1 kubeadm-1.9.1 kubectl-1.9.1
 
 systemctl enable kubelet && systemctl start kubelet
 

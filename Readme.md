@@ -32,9 +32,9 @@ $ cd /; \
 
 
 # Init kuber master node
-$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11
+###$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 
 ###$ sudo kubeadm init --feature-gates=CoreDNS=true --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
-###$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.9
+$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.9
 
 # Copy credentials to /home/vagrant + some tweaks
 $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
@@ -49,7 +49,7 @@ $ kubectl version
 # If you are going to run single node cluster then do not run below.
 # By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
-
+ 
 # Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
 ###$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml; \
 ### kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
@@ -57,7 +57,7 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
 
 # If server does not allow access to the requested resource - The kubernetes cluster has RBAC enabled. Run:
-$ https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+###$ https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces

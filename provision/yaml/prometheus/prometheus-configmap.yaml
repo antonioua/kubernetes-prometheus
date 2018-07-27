@@ -78,6 +78,36 @@ data:
         action: keep
         regex: default;kubernetes;https
 
+
+
+    #### Additional try to catch correct cadvisor api url
+    ###- job_name: cadvisor1
+    ###  scrape_interval: 5s
+    ###  metrics_path: /api/v1/nodes/node-1/proxy/metrics/cadvisor
+    ###  scheme: https
+    ###  tls_config:
+    ###    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    ###  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    ###  static_configs:
+    ###  - targets:
+    ###    - kubernetes:6443
+
+
+    ###- job_name: 'cadvisor'
+    ###
+    ###  # Override the global default and scrape targets from this job every 5 seconds.
+    ###  scrape_interval: 5s
+    ###
+    ###  dns_sd_configs:
+    ###  - names:
+    ###    - 'cadvisor'
+    ###    type: 'A'
+    ###    port: 8080
+    ###
+    ###  # static_configs:
+    ###  # - targets: ['cadvisor:8080']
+    ###
+
     # Scrape config for nodes (kubelet).
     #
     # Rather than connecting directly to the node, the scrape is proxied though the
@@ -115,35 +145,8 @@ data:
         - action: labelmap
           regex: __meta_kubernetes_node_label_(.+)
         - target_label: __address__
-          replacement: kube-apiserver:6443
+          replacement: 10.10.10.11:6443
         - source_labels: [__meta_kubernetes_node_name]
           regex: (.+)
           target_label: __metrics_path__
           replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
-
-    # Additional try to catch correct cadvisor api url
-    - job_name: cadvisor
-      scrape_interval: 5s
-      metrics_path: /api/v1/nodes/node-1/proxy/metrics/cadvisor
-      scheme: https
-      tls_config:
-        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      static_configs:
-      - targets:
-        - 10.10.10.11:6443
-
-    ###- job_name: 'cadvisor'
-    ###
-    ###  # Override the global default and scrape targets from this job every 5 seconds.
-    ###  scrape_interval: 5s
-    ###
-    ###  dns_sd_configs:
-    ###  - names:
-    ###    - 'cadvisor'
-    ###    type: 'A'
-    ###    port: 8080
-    ###
-    ###  # static_configs:
-    ###  # - targets: ['cadvisor:8080']
-    ###
