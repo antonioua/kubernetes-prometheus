@@ -19,3 +19,14 @@ data:
             controllers are not making progress.
           runbook: https://coreos.com/tectonic/docs/latest/troubleshooting/controller-recovery.html#recovering-a-controller-manager
           summary: Controller manager is down
+
+      - alert: NodeCPUUtilisation
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])) * 100) > 85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          description: 'High CPU utilisation detected for instance {{ $labels.instance_id
+            }} tagged as: {{ $labels.instance_name_tag }}, the utilisation is currently:
+            {{ $value }}%'
+          summary: CPU Utilisation Alert

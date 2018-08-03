@@ -138,6 +138,8 @@ Useful resources:
 - https://github.com/giantswarm/kubernetes-prometheus/
 - https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole
 - https://github.com/coreos
+- PromQL examples: https://github.com/infinityworks/prometheus-example-queries
+- test rules: http://demo.robustperception.io:9090/graph?g0.range_input=1h&g0.expr=irate(node_cpu%7Bjob%3D%22node%22%7D%5B5m%5D)&g0.tab=1
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
@@ -146,12 +148,14 @@ Useful resources:
 4. Are we able to restart pod/service/container to enable the configuration from configMap, for example configmap with rules for prometheus?
 5. To which endpoint configure prometheus to connect to get k8s metrics, api server? <br/>
 I have k8s v1.11 and prometheus v2.3.2
+6. How to set timezone for all pods running in kube-system namespace, maybe during cluster init ?
 
 ## Sesurity cheks
 1. https://github.com/kayrus/kubelet-exploit
 
 ## Troubleshooting and debugging
 1. Check DNS, https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
+2. https://www.robustperception.io/blog
 
 ## To try
 - As I know the use of kubeadm is discouraged in production, so need to try https://github.com/kubernetes/kops/
