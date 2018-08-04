@@ -22,28 +22,9 @@ data:
     # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
     rule_files:
       - "/etc/prometheus-rules/*.rules.yaml"
-      # - "first_rules.yml"
-      # - "second_rules.yml"
-
-    # A scrape configuration for running Prometheus on a Kubernetes cluster.
-    # This uses separate scrape configs for cluster components (i.e. API server, node)
-    # and services to allow each to use different authentication configs.
-    #
-    # Kubernetes labels will be added as Prometheus labels on metrics via the
-    # `labelmap` relabeling action.
-    #
-    # If you are using Kubernetes 1.7.2 or earlier, please take note of the comments
-    # for the kubernetes-cadvisor job; you will need to edit or remove this job.
-
-    # Scrape config for API servers.
-    #
-    # Kubernetes exposes API servers as endpoints to the default/kubernetes
-    # service so this uses `endpoints` role and uses relabelling to only keep
-    # the endpoints associated with the default/kubernetes service using the
-    # default named port `https`. This works for single API server deployments as
-    # well as HA API server deployments.
 
     scrape_configs:
+
     - job_name: 'kubernetes-apiservers'
 
       kubernetes_sd_configs:
@@ -79,41 +60,13 @@ data:
         regex: default;kubernetes;https
 
 
-
-    #### Additional try to catch correct cadvisor api url
-    ###- job_name: cadvisor1
-    ###  scrape_interval: 5s
-    ###  metrics_path: /api/v1/nodes/node-1/proxy/metrics/cadvisor
-    ###  scheme: https
-    ###  tls_config:
-    ###    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-    ###  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-    ###  static_configs:
-    ###  - targets:
-    ###    - kubernetes:6443
-
-
-    ###- job_name: 'cadvisor'
-    ###
-    ###  # Override the global default and scrape targets from this job every 5 seconds.
-    ###  scrape_interval: 5s
-    ###
-    ###  dns_sd_configs:
-    ###  - names:
-    ###    - 'cadvisor'
-    ###    type: 'A'
-    ###    port: 8080
-    ###
-    ###  # static_configs:
-    ###  # - targets: ['cadvisor:8080']
-    ###
-
     # Scrape config for nodes (kubelet).
     #
     # Rather than connecting directly to the node, the scrape is proxied though the
     # Kubernetes apiserver.  This means it will work if Prometheus is running out of
     # cluster, or can't connect to nodes for some other reason (e.g. because of
     # firewalling).
+
 
     - job_name: 'kubernetes-nodes-cadvisor'
 
@@ -152,6 +105,28 @@ data:
           replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
 
 
+    - job_name: 'kubernetes-nodes-pods-metrics'
+
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+        - role: node
+
+      relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: 10.10.10.11:6443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics
+
+
     - job_name: node-exporter
       scrape_interval: 5s
       metrics_path: /metrics
@@ -160,4 +135,15 @@ data:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
       static_configs:
-      - targets: ["10.10.10.12:9100", "10.10.10.11:9100"]
+      - targets: ["10.10.10.11:9100", "10.10.10.12:9100"]
+
+
+    - job_name: kube-controller-manager-prometheus-discovery
+      scrape_interval: 5s
+      metrics_path: /metrics
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      static_configs:
+      - targets: ["10.10.10.11:10252"]

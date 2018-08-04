@@ -59,6 +59,10 @@ $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Docu
 # If server does not allow access to the requested resource - The kubernetes cluster has RBAC enabled. Run:
 ###$ https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
+# Bind kubernetes-controller to all ifaces
+$ sudo sed -e "s/- --address=127.0.0.1/- --address=0.0.0.0/" -i /etc/kubernetes/manifests/kube-controller-manager.yaml
+$ sudo systemctl restart kubelet
+
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces
 
@@ -140,6 +144,9 @@ Useful resources:
 - https://github.com/coreos
 - PromQL examples: https://github.com/infinityworks/prometheus-example-queries
 - test rules: http://demo.robustperception.io:9090/graph?g0.range_input=1h&g0.expr=irate(node_cpu%7Bjob%3D%22node%22%7D%5B5m%5D)&g0.tab=1
+- slack channel: https://kubernetes.slack.com
+- https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md
+- https://github.com/infinityworks/prometheus-example-queries
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
