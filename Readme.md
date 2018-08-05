@@ -147,6 +147,7 @@ Useful resources:
 - slack channel: https://kubernetes.slack.com
 - https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md
 - https://github.com/infinityworks/prometheus-example-queries
+- Google mailing group: https://groups.google.com/forum/#!forum/prometheus-users
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default

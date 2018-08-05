@@ -10,6 +10,7 @@ data:
     - name: exam.rules
       rules:
 
+      # KubeControllerIsDown - hires when kubernetes controller is down during 1m
       - alert: KubeControllerIsDown
         expr: absent(up{job="kube-controller-manager-prometheus-discovery"} == 1)
         for: 1m
@@ -21,11 +22,27 @@ data:
           runbook: https://coreos.com/tectonic/docs/latest/troubleshooting/controller-recovery.html#recovering-a-controller-manager
           summary: Controller manager is down
 
+      # NodeCpuHigh - hires when cpu usage of one of the node > 85% during 15m. Consider number of cpu cores here
+      # we use "100 -" becasue we get the sum of idle processes that is about 95%, and then we need to get the amount of used cpu
       - alert: NodeCpuHigh
-        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])) * 100) > 85
+        expr: 100 - (sum by (instance) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m])) * 100) > 85
         for: 15m
         labels:
           severity: warning
         annotations:
-          description: "High CPU utilisation detected for instance {{ $labels.instance_id }} tagged as: {{ $labels.instance_name_tag }}, the utilisation is currently: {{ $value }}%"
-          summary: CPU Utilisation Alert
+          description: "High CPU usage detected"
+          #description: "High CPU utilisation detected for instance {{ $labels.instance_id }} tagged as: {{ $labels.instance_name_tag }}, the utilisation is currently: {{ $value }}%"
+          summary: Kubernetes CPU Usage Alert
+
+      # NonPodCpuHigh - hires when sum of cpu usages of the processes which are not kubernetes pods > 30% during 15m
+      - alert: NonPodCpuHigh
+        expr: sum by (instance) (rate(container_cpu_usage_seconds_total{container_name!="POD", id!~"/kubepods.*"}[1m]) * 100) > 30
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          description: "High CPU usage of non-kuber pods/containers detected"
+          summary: CPU Usage Alert
+
+      # PodMemoryHigh - hires when memory usage of one of the pods > 70% of the node memory where it is running
+
