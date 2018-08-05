@@ -119,7 +119,7 @@ $ kubectl describe pod prometheus-core-86b8455f76-px847 --namespace=monitoring
 $ kubectl create -f /provision/yaml/prometheus/prometheus-service.yaml --namespace=monitoring
 $ kubectl get services --all-namespaces
 
-# Deploy manualy other components
+# Deploy manualy other components if needed
 # ToDO
 ~~~
 
