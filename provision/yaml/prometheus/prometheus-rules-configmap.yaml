@@ -28,7 +28,7 @@ data:
         expr: 100 - (sum by (instance) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m])) * 100) > 85
         for: 15m
         labels:
-          severity: warning
+          severity: critical
         annotations:
           description: "High CPU usage detected"
           #description: "High CPU utilisation detected for instance {{ $labels.instance_id }} tagged as: {{ $labels.instance_name_tag }}, the utilisation is currently: {{ $value }}%"
@@ -39,10 +39,17 @@ data:
         expr: sum by (instance) (rate(container_cpu_usage_seconds_total{container_name!="POD", id!~"/kubepods.*"}[1m]) * 100) > 30
         for: 15m
         labels:
-          severity: warning
+          severity: critical
         annotations:
           description: "High CPU usage of non-kuber pods/containers detected"
           summary: CPU Usage Alert
 
       # PodMemoryHigh - hires when memory usage of one of the pods > 70% of the node memory where it is running
-
+      - alert: PodMemoryHigh
+        expr: (sum by (pod_name, instance) (container_memory_usage_bytes{container_name="POD", image!=""})) * 100 / 2985963520 > 70
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          description: "High Memory usage by POD"
+          summary: High Memory Usage
