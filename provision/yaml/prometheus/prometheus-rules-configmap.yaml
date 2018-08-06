@@ -5,11 +5,10 @@ metadata:
   name: prometheus-rules
   namespace: monitoring
 data:
-  kube-controller-manager.rules.yaml: |
+  prometheus.rules.yaml: |
     groups:
-    - name: exam.rules
+    - name: downtime.alerts
       rules:
-
       # KubeControllerIsDown - hires when kubernetes controller is down during 1m
       - alert: KubeControllerIsDown
         expr: absent(up{job="kube-controller-manager-prometheus-discovery"} == 1)
@@ -22,10 +21,14 @@ data:
           runbook: https://coreos.com/tectonic/docs/latest/troubleshooting/controller-recovery.html#recovering-a-controller-manager
           summary: Controller manager is down
 
+    - name: node.alerts:
+      rules:
       # NodeCpuHigh - hires when cpu usage of one of the node > 85% during 15m. Consider number of cpu cores here
-      # we use "100 -" becasue we get the sum of idle processes that is about 95%, and then we need to get the amount of used cpu
       - alert: NodeCpuHigh
-        expr: 100 - (sum by (instance) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m])) * 100) > 85
+        ### we use "100 -" becasue we get the sum of idle processes that is about 95%, and then we need to get the amount of used cpu
+        ### expr: 100 - (sum by (instance) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m])) * 100) > 85
+        # per-second usage if we take its rate, then we convert it to percentage usage depending on number of cpu on each instance accordingly, group_left() - many-to-one reference
+        expr: ( rate(container_cpu_system_seconds_total{id="/", image=""}[5m]) + rate(container_cpu_user_seconds_total{id="/", image=""}[5m]) ) * 100 / on (instance) group_left() machine_cpu_cores > 85
         for: 15m
         labels:
           severity: critical
@@ -34,14 +37,17 @@ data:
           #description: "High CPU utilisation detected for instance {{ $labels.instance_id }} tagged as: {{ $labels.instance_name_tag }}, the utilisation is currently: {{ $value }}%"
           summary: Kubernetes CPU Usage Alert
 
+    - name: container.alerts:
+      rules:
       # NonPodCpuHigh - hires when sum of cpu usages of the processes which are not kubernetes pods > 30% during 15m
       - alert: NonPodCpuHigh
-        expr: sum by (instance) (rate(container_cpu_usage_seconds_total{container_name!="POD", id!~"/kubepods.*"}[1m]) * 100) > 30
+        ###expr: sum by (instance) (rate(container_cpu_usage_seconds_total{container_name!="POD", id!~"/kubepods.*"}[1m]) * 100) > 30
+        expr: ( sum by (instance) (rate(container_cpu_usage_seconds_total{id!~"/kubepods.*"}[5m])) + sum by (instance) (rate(container_cpu_user_seconds_total{id!~"/kubepods.*"}[5m])) ) *100  / on (instance) group_left() machine_cpu_cores > 30
         for: 15m
         labels:
           severity: critical
         annotations:
-          description: "High CPU usage of non-kuber pods/containers detected"
+          description: "High CPU usage of non-pod processes"
           summary: CPU Usage Alert
 
       # PodMemoryHigh - hires when memory usage of one of the pods > 70% of the node memory where it is running
