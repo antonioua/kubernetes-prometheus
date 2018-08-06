@@ -8,7 +8,8 @@ ENV["VAGRANT_DEFAULT_PROVIDER"] = "virtualbox"
 #image_path = "file:///home/kyrron/Downloads/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box"
 # https://cloud.centos.org/centos/7/vagrant/x86_64/images/CentOS-7-x86_64-Vagrant-1804_02.VirtualBox.box
 image_box_base = "centos/7"
-image_box_version = "1705.02"
+image_box_version = "1804.02"
+#1705.02
 #v1710.01
 
 $instances_amount = 2
@@ -20,8 +21,8 @@ Vagrant.configure("2") do |config|
 
   # setup vagrant plugin to automatically configure proxy on vms
   ###if Vagrant.has_plugin?("vagrant-proxyconf")
-  ###    #p_enable = true
-  ###    p_enable = false
+  ###    p_enable = true
+  ###    #p_enable = false
   ###    p_host = "172.29.50.100"
   ###    p_port = 8080
   ###    proxy = "http://#{p_host}:#{p_port}"

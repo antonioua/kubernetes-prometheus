@@ -73,7 +73,8 @@ EOF
 
 # Install kuber node components: kubeadm, kubelet and kubectl
 ###yum install -y kubelet kubeadm kubectl
-yum install -y kubelet-1.9.1 kubeadm-1.9.1 kubectl-1.9.1
+###yum install -y kubelet-1.9.1 kubeadm-1.9.1 kubectl-1.9.1
+yum install -y kubelet-1.11.1 kubeadm-1.11.1 kubectl-1.11.1
 
 systemctl enable kubelet && systemctl start kubelet
 

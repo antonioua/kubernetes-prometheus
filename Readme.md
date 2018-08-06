@@ -34,7 +34,8 @@ $ cd /; \
 # Init kuber master node
 ###$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 
 ###$ sudo kubeadm init --feature-gates=CoreDNS=true --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
-$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.9
+###$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.9
+$ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11 --kubernetes-version stable-1.11
 
 # Copy credentials to /home/vagrant + some tweaks
 $ sudo --user=vagrant mkdir -p /home/vagrant/.kube; \
@@ -50,18 +51,14 @@ $ kubectl version
 # By default, your cluster will not schedule pods on the master for security reasons. If you want to be able to schedule pods on the master
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
  
-# Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions: master or v0.10.0
-###$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml; \
-### kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
-
+# Deploy the Container Networking Interface (CNI) - apply pod network (flannel) + RBAC permissions
 $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
 
 # If server does not allow access to the requested resource - The kubernetes cluster has RBAC enabled. Run:
-###$ https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+###$ https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
-# Bind kubernetes-controller to all ifaces
+# Bind kubernetes-controller to listen on all interfaces, needed to scrape metrics by promethues from worker node
 $ sudo sed -e "s/- --address=127.0.0.1/- --address=0.0.0.0/" -i /etc/kubernetes/manifests/kube-controller-manager.yaml
-$ sudo systemctl restart kubelet
 
 # Check kubernetes cluster
 $ kubectl get pods --all-namespaces
@@ -80,6 +77,8 @@ $ sudo kubeadm join 10.10.10.11:6443 --token zuaaz7.s3iykge1y2vz1xa5 --discovery
 For automatic spin up the prometheus service with all of it's components:
 ~~~bash
 $ vagrant ssh node1
+
+$ kubectl get nodes
 
 # Generate single conf file
 $ cd /provision/ && chmod u+x ./build_deployment_file.sh && ./build_deployment_file.sh
@@ -128,6 +127,7 @@ You can access prometheus webUI via url: http://10.10.10.12:30000/
 To delete everything and play again:
 ~~~bash
 $ kubectl delete -f /provision/manifests-all.yaml
+or:
 $ kubectl delete namespace monitoring --grace-period=0 --force
 ~~~
 
@@ -148,6 +148,14 @@ Useful resources:
 - https://github.com/google/cadvisor/blob/master/docs/storage/prometheus.md
 - https://github.com/infinityworks/prometheus-example-queries
 - Google mailing group: https://groups.google.com/forum/#!forum/prometheus-users
+- https://www.robustperception.io/understanding-machine-cpu-usage
+- https://www.robustperception.io/rate-then-sum-never-sum-then-rate
+- https://www.youtube.com/watch?v=1oJXMdVi0mM
+- https://www.youtube.com/watch?v=1xigs63DEvs
+- https://github.com/kausalco/public/tree/master/prometheus-ksonnet
+- https://github.com/prometheus/prometheus/blob/master/docs/configuration/alerting_rules.md
+- https://github.com/infinityworks/prometheus-example-queries
+- https://github.com/kosta709/promDemo/blob/master/Kubernetes/assets/prometheus/prometheus-configmap.yaml
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
