@@ -156,6 +156,8 @@ Useful resources:
 - https://github.com/prometheus/prometheus/blob/master/docs/configuration/alerting_rules.md
 - https://github.com/infinityworks/prometheus-example-queries
 - https://github.com/kosta709/promDemo/blob/master/Kubernetes/assets/prometheus/prometheus-configmap.yaml
+- https://en.wikipedia.org/wiki/Time_series_database
+- https://ceph.com/
 
 ## Some Questions:
 1. Can't exec cmd in container running on worler node: kubectl exec -ti busybox -- nslookup kubernetes.default
@@ -175,3 +177,10 @@ I have k8s v1.11 and prometheus v2.3.2
 
 ## To try
 - As I know the use of kubeadm is discouraged in production, so need to try https://github.com/kubernetes/kops/
+
+## Basic knowledges
+- https://www.silicon.co.uk/software/open-source/linux-kernel-cgroups-namespaces-containers-186240?inf_by=59f18086681db813098b456c
+- Cgroups limits the resources which a process or set of processes can use these resources could be CPU,Memory,Network I/O or access to filesystem
+while namespace restrict the visibility of group of processes to the rest of the system.
+- container_cpu_usage_seconds_total[5m] - the amount of seconds that cpu used for certain process, time range for values to take 5min, the value is always increases from the time when process started living
+- when we ask promethues for rate it takes

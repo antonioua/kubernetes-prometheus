@@ -20,19 +20,14 @@ yum install net-tools telnet ntp jq vim lsof bind-utils -y
 # Disabling SELinux is required to allow containers to access the host filesystem, which is required by pod networks for example. You have to do this until SELinux support is improved in the kubelet.
 setenforce 0
 sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
-
-
 #/etc/sysconfig/selinux ???
-
-
 
 # kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
 # kubeadm: the command to bootstrap the cluster.
 # kubectl: the command line util to talk to your cluster.
 systemctl stop firewalld
 
-systemctl start ntpd
-systemctl enable ntpd
+systemctl start ntpd && systemctl enable ntpd
 
 # Install Docker
 yum install -y yum-utils \
