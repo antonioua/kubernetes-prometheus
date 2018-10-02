@@ -25,7 +25,7 @@ sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
 # kubelet: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
 # kubeadm: the command to bootstrap the cluster.
 # kubectl: the command line util to talk to your cluster.
-systemctl stop firewalld
+systemctl stop firewalld && systemctl disable firewalld
 
 systemctl start ntpd && systemctl enable ntpd
 
@@ -39,11 +39,11 @@ yum-config-manager \
     https://download.docker.com/linux/centos/docker-ce.repo
 
 # Install recommended by kuber version of docker
+#yum install docker-ce -y
 #yum list docker-ce --showduplicates | sort -r
 yum install -y --setopt=obsoletes=0 \
-  docker-ce-17.03.2.ce-1.el7.centos \
-  docker-ce-selinux-17.03.2.ce-1.el7.centos
-###yum install docker-ce -y
+  docker-ce-18.03.1.ce-1.el7.centos \
+  docker-ce-selinux-18.03.1.ce-1.el7.centos
 systemctl enable docker && systemctl start docker
 
 # Avoid kuber warning [WARNING RequiredIPVSKernelModulesAvailable]: the IPVS proxier will not be used
