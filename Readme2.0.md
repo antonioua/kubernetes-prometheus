@@ -37,3 +37,4 @@ $ kubeadm init --help
 $ kubeadm init --service-cidr=192.168.0.0/24 --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=${local_ip_addr} --kubernetes-version v1.12.1
 
 $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
